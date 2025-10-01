@@ -37,7 +37,7 @@ let really_of_string
             ()))
 ;;
 
-module type Formatter = sig
+module type Formatter = sig @@ portable
   type nonrec t = t
 
   val which_suffix : (t -> string) -> t -> string
@@ -143,6 +143,7 @@ module Stable = struct
         ;;
       end) :
       sig
+      @@ portable
         include Sexpable.S with type t := t
       end)
   end
@@ -193,6 +194,7 @@ include (
     let to_string = to_string_accurate
   end) :
   sig
+  @@ portable
     include Sexpable.S with type t := t
   end)
 
@@ -247,6 +249,7 @@ module Always_percentage = struct
       let to_string = to_string_accurate
     end) :
     sig
+    @@ portable
       include Sexpable.S with type t := t
     end)
 end
