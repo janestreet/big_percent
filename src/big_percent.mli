@@ -5,7 +5,7 @@ open! Core
 type t = private Bignum.t
 [@@deriving compare ~localize, equal ~localize, hash, quickcheck, sexp_of]
 
-include Comparable.S with type t := t
+include Comparable.S [@modality portable] with type t := t
 include Hashable.S with type t := t
 
 val ( * ) : t -> t -> t

@@ -59,7 +59,7 @@ module Make_stringable (Formatter : Formatter) = struct
     else Formatter.which_suffix bignum_to_string t
   ;;
 
-  let to_string_accurate = really_to_string to_string_accurate
+  let to_string_accurate t = really_to_string to_string_accurate t
 
   let to_string_hum ?delimiter ?decimals ?strip_zero =
     really_to_string (to_string_hum ?delimiter ?decimals ?strip_zero)
@@ -126,7 +126,7 @@ module Stable = struct
       end)
 
     include (
-      Sexpable.Stable.Of_stringable.V1 (struct
+      Sexpable.Stable.Of_stringable.V1 [@modality portable] (struct
         type nonrec t = t
 
         let of_string str =
@@ -142,7 +142,9 @@ module Stable = struct
           really_to_string bignum_to_string t
         ;;
       end) :
-        Sexpable.S with type t := t)
+      sig
+        include Sexpable.S with type t := t
+      end)
   end
 end
 
@@ -166,8 +168,8 @@ let round_decimal_bp p ~digits =
   round_decimal ~dir:`Nearest (p * of_int 10000) ~digits / of_int 10000
 ;;
 
-let of_string_allow_nan_and_inf_internal =
-  really_of_string ~allow_nan_or_inf:true ~bignum_of_string:of_string
+let of_string_allow_nan_and_inf_internal string =
+  really_of_string ~allow_nan_or_inf:true ~bignum_of_string:of_string string
 ;;
 
 include Make_stringable (struct
@@ -179,27 +181,32 @@ include Make_stringable (struct
   end)
 
 include (
-  Sexpable.Stable.Of_stringable.V1 (struct
+  Sexpable.Stable.Of_stringable.V1 [@modality portable] (struct
     type nonrec t = t
 
-    let of_string =
+    let of_string string =
       of_string_allow_nan_and_inf_internal
         ~function_to_refer_to_in_exception:"Unstable.t_of_sexp"
+        string
     ;;
 
     let to_string = to_string_accurate
   end) :
-    Sexpable.S with type t := t)
+  sig
+    include Sexpable.S with type t := t
+  end)
 
-let of_string_exn =
+let of_string_exn string =
   really_of_string
+    string
     ~allow_nan_or_inf:false
     ~bignum_of_string:of_string
     ~function_to_refer_to_in_exception:"of_string_exn"
 ;;
 
-let of_string_allow_nan_and_inf =
+let of_string_allow_nan_and_inf string =
   of_string_allow_nan_and_inf_internal
+    string
     ~function_to_refer_to_in_exception:"of_string_allow_nan_and_inf"
 ;;
 
@@ -228,15 +235,18 @@ module Always_percentage = struct
     end)
 
   include (
-    Sexpable.Stable.Of_stringable.V1 (struct
+    Sexpable.Stable.Of_stringable.V1 [@modality portable] (struct
       type nonrec t = t
 
-      let of_string =
+      let of_string string =
         of_string_allow_nan_and_inf_internal
+          string
           ~function_to_refer_to_in_exception:"Always_percentage.t_of_sexp"
       ;;
 
       let to_string = to_string_accurate
     end) :
-      Sexpable.S with type t := t)
+    sig
+      include Sexpable.S with type t := t
+    end)
 end
